@@ -58,6 +58,38 @@ const validateAccount = async (req, res, next) => {
   }
 };
 
+const validateAccountUpdate = async (req, res, next) => {
+  if (!req.body) {
+    res.status(400).json({ error: 'Request body is empty.' });
+    return;
+  }
+
+  const { name, budget } = req.body;
+
+  if (name || budget) {
+    if (name) {
+      try {
+        const existing = await db('accounts')
+          .where({ name })
+          .first();
+
+        if (existing) {
+          res.status(400).json({ error: 'This account name already exists.' });
+          return;
+        }
+      } catch (err) {
+        next(err);
+      }
+    }
+
+    next();
+  } else {
+    res
+      .status(400)
+      .json({ error: 'A name or a budget is needed to update an account.' });
+  }
+};
+
 router
   .route('/')
   .get(async (req, res, next) => {
@@ -93,6 +125,30 @@ router
 
       if (deleted) {
         res.status(200).json(req.account);
+      } else {
+        throw new Error();
+      }
+    } catch (err) {
+      next(err);
+    }
+  })
+  .put(validateAccountUpdate, async (req, res, next) => {
+    try {
+      const { id } = req.account;
+      const { name, budget } = req.body;
+      const updatedAccount = {
+        name: name || req.account.name,
+        budget: budget || req.account.budget,
+      };
+      const updated = await db('accounts')
+        .where({ id })
+        .update(updatedAccount);
+
+      if (updated) {
+        res.status(200).json({
+          ...updatedAccount,
+          id,
+        });
       } else {
         throw new Error();
       }
