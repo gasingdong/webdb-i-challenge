@@ -94,8 +94,22 @@ router
   .route('/')
   .get(async (req, res, next) => {
     try {
-      const accounts = await db('accounts');
-      res.status(200).json(accounts);
+      const query = db('accounts');
+      const { limit, sortby, sortdir } = req.query;
+
+      if (limit) {
+        query.limit(limit);
+      }
+
+      if (sortby) {
+        if (sortdir) {
+          query.orderBy(sortby, sortdir);
+        } else {
+          query.orderBy(sortby);
+        }
+      }
+
+      res.status(200).json(await query);
     } catch (err) {
       next(err);
     }
