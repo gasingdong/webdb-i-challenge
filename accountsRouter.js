@@ -81,8 +81,24 @@ router
 router
   .route('/:id')
   .all(validateAccountId)
-  .get(async (req, res) => {
+  .get((req, res) => {
     res.status(200).json(req.account);
+  })
+  .delete(async (req, res, next) => {
+    const { id } = req.account;
+    try {
+      const deleted = await db('accounts')
+        .where({ id })
+        .del();
+
+      if (deleted) {
+        res.status(200).json(req.account);
+      } else {
+        throw new Error();
+      }
+    } catch (err) {
+      next(err);
+    }
   });
 
 const accountsErrorHandler = (err, req, res, next) => {
