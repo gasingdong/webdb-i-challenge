@@ -5,6 +5,30 @@ const router = express.Router();
 
 router.use(express.json());
 
+const validateAccountId = async (req, res, next) => {
+  const { id } = req.params;
+
+  if (Number.isNaN(Number(id)) || !Number.isFinite(Number(id))) {
+    res.status(400).json({ error: 'The id is not a valid number.' });
+    return;
+  }
+
+  try {
+    const account = await db('accounts')
+      .where({ id })
+      .first();
+
+    if (account) {
+      req.account = account;
+      next();
+    } else {
+      res.status(404).json({ error: 'There is no account with this id.' });
+    }
+  } catch (err) {
+    next(err);
+  }
+};
+
 const validateAccount = async (req, res, next) => {
   if (!req.body) {
     res.status(400).json({ error: 'Request body is empty.' });
@@ -52,6 +76,13 @@ router
     } catch (err) {
       next(err);
     }
+  });
+
+router
+  .route('/:id')
+  .all(validateAccountId)
+  .get(async (req, res) => {
+    res.status(200).json(req.account);
   });
 
 const accountsErrorHandler = (err, req, res, next) => {
