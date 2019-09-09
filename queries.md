@@ -10,7 +10,7 @@ SELECT Phone FROM Suppliers WHERE SupplierID=11;
 
 ## List first 10 orders ever places, descending by the order date
 
-SELECT TOP 10 * FROM Orders ORDER BY OrderDate;
+SELECT TOP 10 * FROM Orders ORDER BY OrderDate desc;
 
 ## Find all customers that live in London, Madrid, or Brazil
 
